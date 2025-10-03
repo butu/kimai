@@ -1,5 +1,5 @@
 name: kimai.webprofil.at
-type: php
+type: symfony
 docroot: public
 php_version: "8.3"
 webserver_type: nginx-fpm
@@ -291,3 +291,6 @@ corepack_enable: false
 # information on the commands that can be extended and the tasks you can define
 # for them. Example:
 #hooks:
+## Un-comment to consume async message.
+#    post-start:
+#    - exec: symfony run --daemon --watch=config,src,templates,vendor bin/console messenger:consume async -vv
