@@ -1,7 +1,7 @@
 config:
   repository: https://github.com/butu/kimai
 hosts:
-  kunden.webprofil.at.mars.webprofil.at:
+  kimai.webprofil.at.mars.webprofil.at:
     host: kimai.webprofil.at.mars.webprofil.at
     branch: main
     remote_user: c594983_w732_ssh1
