@@ -26,6 +26,7 @@ var/templates/
 /var/cache/*
 /var/invoices*
 /var/export*
+/var/db-dumps/*
 /var/log/*
 /var/sessions/*
 /var/packages/*
