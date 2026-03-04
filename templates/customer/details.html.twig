@@ -4,7 +4,7 @@
 {% block main %}
     {% set can_edit = is_granted('edit', customer) %}
 
-    {% embed '@theme/embeds/card.html.twig' %}
+    {% embed '@theme/embeds/card.html.twig' with {fullsize: true}  %}
         {% import "macros/widgets.html.twig" as widgets %}
         {% block box_attributes %}id="customer_details_box"{% endblock %}
         {% block box_title %}
@@ -16,7 +16,6 @@
                 {{ widgets.card_tool_button('edit', {'class': 'modal-ajax-form open-edit', 'title': 'edit', 'url': path('admin_customer_edit', {'id': customer.id})}) }}
             {% endif %}
         {% endblock %}
-        {% block box_body_class %}p-0{% endblock %}
         {% block box_body %}
             {% if customer.comment is not empty %}
                 <div class="comment p-3">
@@ -38,10 +37,31 @@
                         </td>
                     </tr>
                 {% endif %}
+                {% if customer.addressLine1 is not empty %}
+                    <tr>
+                        <th>{{ 'address'|trans }}</th>
+                        <td>
+                            {{ customer.addressLine1 }}<br>
+                            {% if customer.addressLine2 is not empty %}
+                                {{ customer.addressLine2 }}<br>
+                            {% endif %}
+                            {% if customer.addressLine3 is not empty %}
+                                {{ customer.addressLine3 }}<br>
+                            {% endif %}
+                            {{ customer.postCode }} {{ customer.city }}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if customer.address is not empty %}
                     <tr>
                         <th>{{ 'address'|trans }}</th>
-                        <td>{{ customer.address|nl2br }}</td>
+                        <td>
+                            {{ widgets.alert('info', 'address_deprecated'|trans) }}
+                            <br>
+                            <i>
+                            {{ customer.address|nl2br }}
+                            </i>
+                        </td>
                     </tr>
                 {% endif %}
                 {% if customer.country is not empty %}

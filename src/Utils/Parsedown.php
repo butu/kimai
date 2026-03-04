@@ -21,13 +21,18 @@ class Parsedown extends \Parsedown
     {
         $block = parent::blockHeader($Line);
 
-        $text = $block['element']['text'];
-        $id = $this->getIDfromText($text);
+        if (isset($block['element']['handler']['argument'])) {
+            $text = $block['element']['handler']['argument'];
 
-        // add id-attribute
-        $block['element']['attributes'] = [
-            'id' => $id
-        ];
+            if (\is_string($text) && $text !== '') {
+                $id = $this->getIDfromText($text);
+
+                // add id-attribute
+                $block['element']['attributes'] = [
+                    'id' => $id
+                ];
+            }
+        }
 
         return $block;
     }
@@ -67,7 +72,7 @@ class Parsedown extends \Parsedown
         return $text;
     }
 
-    protected function blockTable($Line, array $Block = null) // @phpstan-ignore missingType.return,missingType.iterableValue,missingType.parameter
+    protected function blockTable($Line, ?array $Block = null) // @phpstan-ignore missingType.return,missingType.iterableValue,missingType.parameter
     {
         $Block = parent::blockTable($Line, $Block);
 
