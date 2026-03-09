@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="last_weeks_billable_widget.title" resname="last_weeks_billable_widget.title">
         <source>last_weeks_billable_widget.title</source>
-        <target>Meine verrechenbaren Stunden (6 Monate)</target>
+        <target>Meine verrechenbaren Stunden</target>
       </trans-unit>
       <trans-unit id="last_weeks_billable_widget.target" resname="last_weeks_billable_widget.target">
         <source>last_weeks_billable_widget.target</source>
@@ -13,6 +13,26 @@
       <trans-unit id="last_weeks_billable_widget.delta" resname="last_weeks_billable_widget.delta">
         <source>last_weeks_billable_widget.delta</source>
         <target>Abweichung</target>
+      </trans-unit>
+      <trans-unit id="last_weeks_billable_widget.ratio_target" resname="last_weeks_billable_widget.ratio_target">
+        <source>last_weeks_billable_widget.ratio_target</source>
+        <target>Ziel (%ratio%% von gebucht)</target>
+      </trans-unit>
+      <trans-unit id="last_weeks_billable_widget.ratio_target_short" resname="last_weeks_billable_widget.ratio_target_short">
+        <source>last_weeks_billable_widget.ratio_target_short</source>
+        <target>Ziel %ratio%%</target>
+      </trans-unit>
+      <trans-unit id="last_weeks_billable_widget.booked" resname="last_weeks_billable_widget.booked">
+        <source>last_weeks_billable_widget.booked</source>
+        <target>Gebucht</target>
+      </trans-unit>
+      <trans-unit id="last_weeks_billable_widget.ratio_delta" resname="last_weeks_billable_widget.ratio_delta">
+        <source>last_weeks_billable_widget.ratio_delta</source>
+        <target>Abweichung zu 65%</target>
+      </trans-unit>
+      <trans-unit id="last_weeks_billable_widget.non_billable" resname="last_weeks_billable_widget.non_billable">
+        <source>last_weeks_billable_widget.non_billable</source>
+        <target>Nicht abrechenbar</target>
       </trans-unit>
     </body>
   </file>

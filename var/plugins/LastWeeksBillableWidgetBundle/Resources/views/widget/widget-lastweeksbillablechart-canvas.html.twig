@@ -1,0 +1,298 @@
+{% set type = options.type|default('bar') %}
+{% set chart_id = options.id %}
+{% set backgroundColor = config('theme.chart.background_color') %}
+{% set gridColor = config('theme.chart.grid_color') %}
+{% set weeks = data.weeks %}
+{% set series = data.series %}
+{% set ratioPercent = (data.ratio * 100)|round(0, 'common') %}
+
+<div class="chart">
+    <canvas id="{{ chart_id }}" style="height: {{ config('theme.chart.height') }}px; width: 100%;"></canvas>
+</div>
+
+<script type="text/javascript">
+    window.lastWeeksBillableChartInstances = window.lastWeeksBillableChartInstances || {};
+
+    window.lastWeeksHorizontalSegmentPlugin = window.lastWeeksHorizontalSegmentPlugin || {
+        id: 'lastWeeksHorizontalSegmentPlugin',
+        afterDatasetsDraw: function(chart) {
+            const xScale = chart.scales.x;
+            if (!xScale) {
+                return;
+            }
+
+            const tickCount = chart.data.labels ? chart.data.labels.length : 0;
+            let tickDistance = 40;
+            if (tickCount > 1) {
+                tickDistance = Math.abs(xScale.getPixelForTick(1) - xScale.getPixelForTick(0));
+            } else if (chart.chartArea) {
+                tickDistance = Math.max(40, chart.chartArea.width / 2);
+            }
+            const halfSegment = Math.max(10, tickDistance * 0.28);
+
+            chart.data.datasets.forEach(function(dataset, datasetIndex) {
+                if (dataset.horizontalSegments !== true) {
+                    return;
+                }
+
+                const meta = chart.getDatasetMeta(datasetIndex);
+                const ctx = chart.ctx;
+
+                ctx.save();
+                ctx.strokeStyle = dataset.borderColor || '#000';
+                ctx.lineWidth = dataset.borderWidth || 2;
+                if (Array.isArray(dataset.borderDash)) {
+                    ctx.setLineDash(dataset.borderDash);
+                }
+
+                meta.data.forEach(function(point, pointIndex) {
+                    if (dataset.data[pointIndex] === null || dataset.data[pointIndex] === undefined) {
+                        return;
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(point.x - halfSegment, point.y);
+                    ctx.lineTo(point.x + halfSegment, point.y);
+                    ctx.stroke();
+                });
+
+                ctx.restore();
+            });
+        }
+    };
+
+    window.destroyLastWeeksBillableChart = function () {
+        if (window.lastWeeksBillableChartInstances['{{ chart_id }}']) {
+            window.lastWeeksBillableChartInstances['{{ chart_id }}'].destroy();
+            delete window.lastWeeksBillableChartInstances['{{ chart_id }}'];
+        }
+    };
+
+    var paintLastWeeksBillableChartCanvas = function() {
+        var canvas = document.getElementById('{{ chart_id }}');
+        if (canvas === null || typeof Chart === 'undefined') {
+            return;
+        }
+
+        window.destroyLastWeeksBillableChart();
+
+        window.lastWeeksBillableChartInstances['{{ chart_id }}'] = new Chart(
+            canvas.getContext('2d'), {
+                plugins: [window.lastWeeksHorizontalSegmentPlugin],
+                type: '{{ type }}',
+                data: {
+                    labels: [
+                        {% for week in weeks -%}
+                        [
+                            '{{ week.start|date_format('d.m.') }} - {{ week.end|date_format('d.m.') }}',
+                            '{{ week.total|duration }}'
+                        ]
+                        {% if not loop.last %},{% endif -%}
+                        {%- endfor %}
+                    ],
+                    datasets: [
+                        {% for row in series -%}
+                        {
+                            label: '{{ row.activity }}',
+                            backgroundColor: '{{ row.color|default(backgroundColor) }}',
+                            backgroundAlpha: {{ row.billable is defined and row.billable == false ? '0.4' : '1' }},
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            data: [
+                                {%- for value in row.values -%}
+                                {{ value|chart_duration }}{% if not loop.last %},{% endif %}
+                                {%- endfor -%}
+                            ],
+                            realData: [
+                                {%- for value in row.values -%}
+                                {% set week = weeks[loop.index0] %}
+                                {% if value > 0 %}
+                                {{ {
+                                    duration: value|duration,
+                                    customer: row.customer,
+                                    project: row.project,
+                                    activity: row.activity,
+                                    billable: row.billable is defined and row.billable == false ? false : true,
+                                    total: week.total|duration,
+                                    booked: week.booked|duration,
+                                    target: week.fixedTarget|duration,
+                                    ratioTarget: week.ratioTarget|duration,
+                                    delta: week.deltaSign ~ ((week.delta|abs)|duration)
+                                }|json_encode|raw }}
+                                {% else %}
+                                0
+                                {% endif %}
+                                {% if not loop.last %},{% endif %}
+                                {%- endfor -%}
+                            ]
+                        },
+                        {%- endfor %}
+                        {
+                            label: '{{ 'last_weeks_billable_widget.ratio_target'|trans({'%ratio%': ratioPercent}) }}',
+                            type: 'line',
+                            stack: 'ratio-target',
+                            horizontalSegments: true,
+                            borderColor: '#2563eb',
+                            pointRadius: 0,
+                            pointHitRadius: 12,
+                            borderWidth: 4,
+                            borderDash: [3, 3],
+                            fill: false,
+                            showLine: false,
+                            data: [
+                                {%- for week in weeks -%}
+                                {{ week.ratioTargetHours }}{% if not loop.last %},{% endif %}
+                                {%- endfor -%}
+                            ],
+                            realData: [
+                                {%- for week in weeks -%}
+                                {{ {
+                                    isRatioTarget: true,
+                                    ratio: ratioPercent,
+                                    total: week.total|duration,
+                                    booked: week.booked|duration,
+                                    ratioTarget: week.ratioTarget|duration,
+                                    ratioDelta: week.ratioDeltaSign ~ ((week.ratioDelta|abs)|duration)
+                                }|json_encode|raw }}{% if not loop.last %},{% endif %}
+                                {%- endfor -%}
+                            ]
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: true,
+                    responsive: false,
+                    barPercentage: 0.5,
+                    categoryPercentage: 1.0,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            gridLines: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                beginAtZero: true
+                            },
+                            gridLines: {
+                                display: true,
+                                color: '{{ gridColor }}',
+                                lineWidth: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
+                                    if (tooltipData === 0) {
+                                        return '';
+                                    }
+                                if (tooltipData.isTarget) {
+                                    return ' {{ 'last_weeks_billable_widget.target'|trans }}: ' + tooltipData.target;
+                                }
+                                if (tooltipData.isRatioTarget) {
+                                    return ' {{ 'last_weeks_billable_widget.ratio_target'|trans({'%ratio%': ratioPercent}) }}: ' + tooltipData.ratioTarget;
+                                }
+                                const billableLabel = tooltipData.billable === false ? '{{ 'last_weeks_billable_widget.non_billable'|trans }}' : '{{ 'billable'|trans }}';
+                                return ' ' + tooltipData.duration + ': ' + tooltipData.activity + ' (' + billableLabel + ')';
+                            },
+                                beforeTitle: function(tooltipItems) {
+                                    const tooltipItem = tooltipItems[0];
+                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
+                                if (tooltipData === 0) {
+                                    return '';
+                                }
+                                if (tooltipData.isRatioTarget) {
+                                    return '{{ 'last_weeks_billable_widget.ratio_target_short'|trans({'%ratio%': ratioPercent}) }}';
+                                }
+                                return tooltipData.customer;
+                            },
+                                title: function(tooltipItems) {
+                                    const tooltipItem = tooltipItems[0];
+                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
+                                if (tooltipData === 0 || tooltipData.isRatioTarget) {
+                                    return tooltipItem.label;
+                                }
+                                    return tooltipData.project;
+                                },
+                                afterTitle: function() {
+                                    return ' ';
+                                },
+                                beforeFooter: function() {
+                                    return ' ';
+                                },
+                                footer: function(tooltipItems) {
+                                    const tooltipItem = tooltipItems[0];
+                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
+                                    if (tooltipData === 0) {
+                                    return '';
+                                }
+                                if (tooltipData.isRatioTarget) {
+                                    return '{{ 'billable'|trans }}: ' + tooltipData.total + '\n{{ 'last_weeks_billable_widget.booked'|trans }}: ' + tooltipData.booked + '\n{{ 'last_weeks_billable_widget.ratio_target'|trans({'%ratio%': ratioPercent}) }}: ' + tooltipData.ratioTarget + '\n{{ 'last_weeks_billable_widget.ratio_delta'|trans }}: ' + tooltipData.ratioDelta;
+                                }
+                                return '{{ 'billable'|trans }}: ' + tooltipData.total + '\n{{ 'last_weeks_billable_widget.booked'|trans }}: ' + tooltipData.booked;
+                            }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        const hexToRgba = function(color, alpha) {
+            if (typeof color !== 'string') {
+                return color;
+            }
+
+            if (color.startsWith('rgba(') || color.startsWith('rgb(')) {
+                return color;
+            }
+
+            if (!color.startsWith('#')) {
+                return color;
+            }
+
+            let hex = color.substring(1);
+            if (hex.length === 3) {
+                hex = hex.split('').map(function(c) { return c + c; }).join('');
+            }
+
+            if (hex.length !== 6) {
+                return color;
+            }
+
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+
+            return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+        };
+
+        const datasets = window.lastWeeksBillableChartInstances['{{ chart_id }}'].data.datasets || [];
+        datasets.forEach(function(dataset) {
+            if (dataset.type === 'line') {
+                return;
+            }
+            const alpha = dataset.backgroundAlpha !== undefined ? dataset.backgroundAlpha : 1;
+            dataset.backgroundColor = hexToRgba(dataset.backgroundColor, alpha);
+        });
+        window.lastWeeksBillableChartInstances['{{ chart_id }}'].update();
+    };
+
+    {% if kimai_context.javascriptRequest %}
+        paintLastWeeksBillableChartCanvas();
+    {% else %}
+        if (document.getElementById('dashboard-grid-container') !== null) {
+            document.addEventListener('dashboard.initialized', paintLastWeeksBillableChartCanvas);
+        } else {
+            document.addEventListener('kimai.initialized', paintLastWeeksBillableChartCanvas);
+        }
+    {% endif %}
+</script>

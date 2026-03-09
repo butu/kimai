@@ -1,184 +1,28 @@
-{% set type = options.type|default('bar') %}
 {% set chart_id = options.id %}
-{% set card_id = chart_id ~ '_box' %}
-{% set backgroundColor = config('theme.chart.background_color') %}
-{% set gridColor = config('theme.chart.grid_color') %}
-{% set weeks = data.weeks %}
-{% set series = data.series %}
-{% set targetValue = data.target|chart_duration %}
 
 {% embed '@theme/embeds/card.html.twig' with {'margin_bottom': 0} %}
+    {% from '@theme/components/buttons.html.twig' import action_cardtoolbutton %}
     {% block box_title %}
-        {% if not title is empty %}{{ title|trans }}{% endif %}
+        {% if not title is empty %}
+            {{ title|trans }} - {{ data.period.date|month_name }} {{ data.period.date|date_format('Y') }} - {{ data.period.billableHours }}h - {{ data.period.billablePercent }}%
+        {% endif %}
     {% endblock %}
     {% block box_attributes %}
-        id="{{ card_id }}"
+        id="LastWeeksBillableChartBox" data-href="#" data-reload=""
+    {% endblock %}
+    {% block box_tools %}
+        {{ action_cardtoolbutton('left', {'title': data.previous.date|month_name ~ ' ' ~ data.previous.date|date_format('Y'), 'class': 'pagination-link', 'onclick': 'window.destroyLastWeeksBillableChart && window.destroyLastWeeksBillableChart()', 'url': path('widgets_last_weeks_billable_chart', {'year': data.previous.year, 'month': data.previous.month})}) }}
+        {{ action_cardtoolbutton('right', {'title': data.next.date|month_name ~ ' ' ~ data.next.date|date_format('Y'), 'class': 'pagination-link', 'onclick': 'window.destroyLastWeeksBillableChart && window.destroyLastWeeksBillableChart()', 'url': path('widgets_last_weeks_billable_chart', {'year': data.next.year, 'month': data.next.month})}) }}
     {% endblock %}
     {% block box_body %}
-        <div class="chart">
-            <canvas id="{{ chart_id }}" style="height: {{ config('theme.chart.height') }}px; width: 100%;"></canvas>
-        </div>
+        {{ render_widget('LastWeeksBillableChartCanvas', {'user': user, 'weeks': data.weeks, 'series': data.series, 'target': data.target, 'ratio': data.ratio, 'id': chart_id}) }}
     {% endblock %}
 {% endembed %}
 
+{% if not kimai_context.javascriptRequest %}
 <script type="text/javascript">
-    var myLastWeeksBillableChart = null;
-
-    var paintLastWeeksBillableChart = function() {
-        myLastWeeksBillableChart = new Chart(
-            document.getElementById('{{ chart_id }}').getContext('2d'), {
-                type: '{{ type }}',
-                data: {
-                    labels: [
-                        {% for week in weeks -%}
-                        '{{ 'stats.workingTimeWeekShort'|trans({'%week%': week.week ~ '/' ~ week.year}) }}'
-                        {% if not loop.last %},{% endif -%}
-                        {%- endfor %}
-                    ],
-                    datasets: [
-                        {% for row in series -%}
-                        {
-                            label: '{{ row.activity }}',
-                            backgroundColor: '{{ row.color|default(backgroundColor) }}',
-                            borderColor: '#fff',
-                            borderWidth: 1,
-                            data: [
-                                {%- for value in row.values -%}
-                                {{ value|chart_duration }}{% if not loop.last %},{% endif %}
-                                {%- endfor -%}
-                            ],
-                            realData: [
-                                {%- for value in row.values -%}
-                                {% set week = weeks[loop.index0] %}
-                                {% if value > 0 %}
-                                {{ {
-                                    duration: value|duration,
-                                    customer: row.customer,
-                                    project: row.project,
-                                    activity: row.activity,
-                                    total: week.total|duration,
-                                    target: data.target|duration,
-                                    delta: (week.deltaSign ~ (week.delta|abs)|duration)
-                                }|json_encode|raw }}
-                                {% else %}
-                                0
-                                {% endif %}
-                                {% if not loop.last %},{% endif %}
-                                {%- endfor -%}
-                            ]
-                        },
-                        {%- endfor %}
-                        {
-                            label: '{{ 'last_weeks_billable_widget.target'|trans }}',
-                            type: 'line',
-                            borderColor: '#f59f00',
-                            pointRadius: 0,
-                            borderWidth: 2,
-                            borderDash: [6, 4],
-                            fill: false,
-                            data: [
-                                {%- for week in weeks -%}
-                                {{ targetValue }}{% if not loop.last %},{% endif %}
-                                {%- endfor -%}
-                            ],
-                            realData: [
-                                {%- for week in weeks -%}
-                                {{ {
-                                    isTarget: true,
-                                    total: week.total|duration,
-                                    target: data.target|duration,
-                                    delta: (week.deltaSign ~ (week.delta|abs)|duration)
-                                }|json_encode|raw }}{% if not loop.last %},{% endif %}
-                                {%- endfor -%}
-                            ]
-                        }
-                    ]
-                },
-                options: {
-                    maintainAspectRatio: true,
-                    responsive: false,
-                    barPercentage: 0.5,
-                    categoryPercentage: 1.0,
-                    scales: {
-                        x: {
-                            stacked: true,
-                            gridLines: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            stacked: true,
-                            ticks: {
-                                beginAtZero: true
-                            },
-                            gridLines: {
-                                display: true,
-                                color: '{{ gridColor }}',
-                                lineWidth: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
-                                    if (tooltipData === 0) {
-                                        return '';
-                                    }
-                                    if (tooltipData.isTarget) {
-                                        return ' {{ 'last_weeks_billable_widget.target'|trans }}: ' + tooltipData.target;
-                                    }
-                                    return ' ' + tooltipData.duration + ': ' + tooltipData.activity;
-                                },
-                                beforeTitle: function(tooltipItems) {
-                                    const tooltipItem = tooltipItems[0];
-                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
-                                    if (tooltipData === 0 || tooltipData.isTarget) {
-                                        return '';
-                                    }
-                                    return tooltipData.customer;
-                                },
-                                title: function(tooltipItems) {
-                                    const tooltipItem = tooltipItems[0];
-                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
-                                    if (tooltipData === 0 || tooltipData.isTarget) {
-                                        return tooltipItem.label;
-                                    }
-                                    return tooltipData.project;
-                                },
-                                afterTitle: function() {
-                                    return ' ';
-                                },
-                                beforeFooter: function() {
-                                    return ' ';
-                                },
-                                footer: function(tooltipItems) {
-                                    const tooltipItem = tooltipItems[0];
-                                    const tooltipData = tooltipItem.dataset.realData[tooltipItem.dataIndex];
-                                    if (tooltipData === 0) {
-                                        return '';
-                                    }
-                                    return '{{ 'billable'|trans }}: ' + tooltipData.total + '\n{{ 'last_weeks_billable_widget.target'|trans }}: ' + tooltipData.target + '\n{{ 'last_weeks_billable_widget.delta'|trans }}: ' + tooltipData.delta;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        );
-    };
-
-    {% if kimai_context.javascriptRequest %}
-        paintLastWeeksBillableChart();
-    {% else %}
-        if (document.getElementById('dashboard-grid-container') !== null) {
-            document.addEventListener('dashboard.initialized', paintLastWeeksBillableChart);
-        } else {
-            document.addEventListener('kimai.initialized', paintLastWeeksBillableChart);
-        }
-    {% endif %}
+    document.addEventListener('kimai.initialized', function() {
+        KimaiPaginatedBoxWidget.create('#LastWeeksBillableChartBox');
+    });
 </script>
+{% endif %}
