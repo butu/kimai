@@ -1,0 +1,24 @@
+{
+    "name": "webprofil/last-weeks-billable-widget-bundle",
+    "description": "Adds a dashboard Chart.js widget for billable hours in the last six weeks.",
+    "homepage": "https://www.kimai.org/",
+    "type": "kimai-plugin",
+    "version": "0.1.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "webprofil"
+        }
+    ],
+    "extra": {
+        "kimai": {
+            "require": 25100,
+            "name": "Last weeks billable widget"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "KimaiPlugin\\LastWeeksBillableWidgetBundle\\": ""
+        }
+    }
+}
