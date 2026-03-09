@@ -267,6 +267,24 @@ final class LastWeeksBillableChart extends AbstractWidget
                     return $aBillable ? -1 : 1;
                 }
 
+                if ($aBillable === true) {
+                    $aFlurl = strcasecmp((string) ($a['customer'] ?? ''), 'flurl.eu') === 0;
+                    $bFlurl = strcasecmp((string) ($b['customer'] ?? ''), 'flurl.eu') === 0;
+
+                    if ($aFlurl !== $bFlurl) {
+                        return $aFlurl ? 1 : -1;
+                    }
+                }
+
+                if ($aBillable === false) {
+                    $aFlurl = strcasecmp((string) ($a['customer'] ?? ''), 'flurl.eu') === 0;
+                    $bFlurl = strcasecmp((string) ($b['customer'] ?? ''), 'flurl.eu') === 0;
+
+                    if ($aFlurl !== $bFlurl) {
+                        return $aFlurl ? -1 : 1;
+                    }
+                }
+
                 return strcasecmp($a['activity'] . '|' . $a['project'], $b['activity'] . '|' . $b['project']);
             }
         );
