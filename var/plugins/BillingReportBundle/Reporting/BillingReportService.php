@@ -67,6 +67,8 @@ final class BillingReportService
         $userData = [];
         /** @var array<int, int> $userIds */
         $userIds = [];
+        /** @var array<int, array{flat: int[], atcost: int[], unknown: int[]}> $projectIds */
+        $projectIds = [];
         foreach ($results as $row) {
             $userId = (int) $row['user_id'];
             $classification = $row['billing_classification'];
@@ -82,6 +84,41 @@ final class BillingReportService
             }
 
             $userData[$userId][$classification] += $duration;
+        }
+
+        // Fetch distinct project IDs per (user, classification) for the drill-down link
+        $qbProjects = $this->timesheetRepository->createQueryBuilder('t2');
+        $qbProjects
+            ->select([
+                'IDENTITY(t2.user) as user_id',
+                'COALESCE(pm2.value, :unknown2) as billing_classification',
+                'IDENTITY(t2.project) as project_id',
+            ])
+            ->leftJoin(ProjectMeta::class, 'pm2', Join::WITH, 'pm2.project = t2.project AND pm2.name = :meta_name2')
+            ->andWhere('t2.billable = :billable2')
+            ->andWhere('t2.end IS NOT NULL')
+            ->andWhere($qbProjects->expr()->gte('t2.begin', ':start2'))
+            ->andWhere($qbProjects->expr()->lt('t2.begin', ':end2'))
+            ->groupBy('user_id', 'billing_classification', 'project_id')
+            ->setParameter('billable2', true)
+            ->setParameter('start2', $start)
+            ->setParameter('end2', $end)
+            ->setParameter('meta_name2', 'billing_classification')
+            ->setParameter('unknown2', 'unknown')
+        ;
+
+        /** @var array<array{user_id: int, billing_classification: string, project_id: int}> $projectResults */
+        $projectResults = $qbProjects->getQuery()->getArrayResult();
+        foreach ($projectResults as $row) {
+            $userId = (int) $row['user_id'];
+            $classification = $row['billing_classification'];
+            $projectId = (int) $row['project_id'];
+
+            if (!isset($projectIds[$userId])) {
+                $projectIds[$userId] = ['flat' => [], 'atcost' => [], 'unknown' => []];
+            }
+
+            $projectIds[$userId][$classification][] = $projectId;
         }
 
         // Load users that have data
@@ -102,11 +139,12 @@ final class BillingReportService
         foreach ($allActiveUsers as $user) {
             $userId = $user->getId();
             $data = $userData[$userId] ?? ['flat' => 0, 'atcost' => 0, 'unknown' => 0];
+            $pIds = $projectIds[$userId] ?? ['flat' => [], 'atcost' => [], 'unknown' => []];
 
             if ($data['flat'] === 0 && $data['atcost'] === 0 && $data['unknown'] === 0) {
-                $rows[] = new BillingReportRow($user, 0, 0, 0);
+                $rows[] = new BillingReportRow($user, 0, 0, 0, [], [], []);
             } else {
-                $rows[] = new BillingReportRow($user, $data['flat'], $data['atcost'], $data['unknown']);
+                $rows[] = new BillingReportRow($user, $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown']);
             }
 
             unset($userData[$userId]);
@@ -115,7 +153,8 @@ final class BillingReportService
         // Any remaining userData entries are disabled users with data - include them
         foreach ($userData as $userId => $data) {
             if (isset($users[$userId])) {
-                $rows[] = new BillingReportRow($users[$userId], $data['flat'], $data['atcost'], $data['unknown']);
+                $pIds = $projectIds[$userId] ?? ['flat' => [], 'atcost' => [], 'unknown' => []];
+                $rows[] = new BillingReportRow($users[$userId], $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown']);
             }
         }
 

@@ -31,12 +31,18 @@ final class BillingReportController extends AbstractController
         ]);
         $form->submit($request->query->all(), false);
 
+        $month = $query->getMonth();
+        $begin = $month !== null ? (clone $month)->setTime(0, 0, 0) : null;
+        $end = $month !== null ? (clone $month)->modify('last day of this month')->setTime(23, 59, 59) : null;
+
         $entries = $service->getReport($query);
 
         return $this->render('@BillingReport/reporting/billing_report.html.twig', [
             'report_title' => 'report_billing',
             'entries' => $entries,
             'form' => $form->createView(),
+            'begin' => $begin,
+            'end' => $end,
         ]);
     }
 }
