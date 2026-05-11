@@ -18,6 +18,14 @@
         <source>billingClassification_unknown</source>
         <target>Nicht klassifiziert</target>
       </trans-unit>
+      <trans-unit id="redmine_1" resname="redmine">
+        <source>redmine</source>
+        <target>Redmine</target>
+      </trans-unit>
+      <trans-unit id="redmine_2" resname="redmine_link">
+        <source>redmine_link</source>
+        <target>Öffnen</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

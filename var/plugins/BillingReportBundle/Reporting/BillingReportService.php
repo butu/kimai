@@ -135,16 +135,27 @@ final class BillingReportService
 
         $rows = [];
 
+        // Helper to get Redmine user ID from a user
+        $getRedmineId = function (User $u): ?int {
+            $val = $u->getPreferenceValue('redmine_user_id');
+            if ($val !== null && $val !== '') {
+                return (int) $val;
+            }
+
+            return null;
+        };
+
         // Add active users with data
         foreach ($allActiveUsers as $user) {
             $userId = $user->getId();
             $data = $userData[$userId] ?? ['flat' => 0, 'atcost' => 0, 'unknown' => 0];
             $pIds = $projectIds[$userId] ?? ['flat' => [], 'atcost' => [], 'unknown' => []];
+            $rmId = $getRedmineId($user);
 
             if ($data['flat'] === 0 && $data['atcost'] === 0 && $data['unknown'] === 0) {
-                $rows[] = new BillingReportRow($user, 0, 0, 0, [], [], []);
+                $rows[] = new BillingReportRow($user, 0, 0, 0, [], [], [], $rmId);
             } else {
-                $rows[] = new BillingReportRow($user, $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown']);
+                $rows[] = new BillingReportRow($user, $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown'], $rmId);
             }
 
             unset($userData[$userId]);
@@ -154,7 +165,8 @@ final class BillingReportService
         foreach ($userData as $userId => $data) {
             if (isset($users[$userId])) {
                 $pIds = $projectIds[$userId] ?? ['flat' => [], 'atcost' => [], 'unknown' => []];
-                $rows[] = new BillingReportRow($users[$userId], $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown']);
+                $rmId = $getRedmineId($users[$userId]);
+                $rows[] = new BillingReportRow($users[$userId], $data['flat'], $data['atcost'], $data['unknown'], $pIds['flat'], $pIds['atcost'], $pIds['unknown'], $rmId);
             }
         }
 

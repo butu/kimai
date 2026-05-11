@@ -26,6 +26,8 @@ final class BillingReportRow
     /** @var int[] */
     private array $unknownProjectIds;
 
+    private ?int $redmineUserId;
+
     /**
      * @param int[] $flatProjectIds
      * @param int[] $atCostProjectIds
@@ -38,7 +40,8 @@ final class BillingReportRow
         int $unknownDuration,
         array $flatProjectIds = [],
         array $atCostProjectIds = [],
-        array $unknownProjectIds = []
+        array $unknownProjectIds = [],
+        ?int $redmineUserId = null
     )
     {
         $this->flatDuration = max(0, $flatDuration);
@@ -47,6 +50,7 @@ final class BillingReportRow
         $this->flatProjectIds = array_values(array_unique(array_map('intval', $flatProjectIds)));
         $this->atCostProjectIds = array_values(array_unique(array_map('intval', $atCostProjectIds)));
         $this->unknownProjectIds = array_values(array_unique(array_map('intval', $unknownProjectIds)));
+        $this->redmineUserId = $redmineUserId;
     }
 
     public function getUser(): ?User
@@ -125,6 +129,11 @@ final class BillingReportRow
     public function getUnknownProjectIds(): array
     {
         return $this->unknownProjectIds;
+    }
+
+    public function getRedmineUserId(): ?int
+    {
+        return $this->redmineUserId;
     }
 
     /**

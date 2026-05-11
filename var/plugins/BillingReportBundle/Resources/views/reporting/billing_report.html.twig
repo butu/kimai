@@ -13,6 +13,7 @@
                 {% set totalAtCost = 0 %}
                 {% set totalUnknown = 0 %}
                 {% set totalOverall = 0 %}
+                {% set redmineBase = 'https://aufgaben.webprofil.at/time_entries?set_filter=1&sort=spent_on%3Adesc&f%5B%5D=spent_on&op%5Bspent_on%5D=%3E%3C&f%5B%5D=user_id&op%5Buser_id%5D=%3D&f%5B%5D=&c%5B%5D=project&c%5B%5D=spent_on&c%5B%5D=hours&c%5B%5D=comments&c%5B%5D=user&c%5B%5D=activity&c%5B%5D=issue&c%5B%5D=cf_13&c%5B%5D=cf_12&group_by=project&t%5B%5D=hours&t%5B%5D=' %}
 
                 <div class="table-responsive">
                     <table class="table table-striped table-bordered dataTable">
@@ -23,6 +24,7 @@
                                 <th class="text-end">{{ 'billingClassification_flat'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'billingClassification_unknown'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'total'|trans }}</th>
+                                <th class="text-center">{{ 'redmine'|trans({}, 'reporting') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,6 +69,12 @@
                                     {%- endif -%}
                                 </td>
                                 <td class="text-end">{{ entry.totalHours|number_format(2, ',', '.') }} h</td>
+                                <td class="text-center">
+                                    {%- if entry.redmineUserId is not null and begin is not null and end is not null -%}
+                                        {% set rmUrl = redmineBase ~ '&v%5Bspent_on%5D%5B%5D=' ~ begin|date('Y-m-d') ~ '&v%5Bspent_on%5D%5B%5D=' ~ end|date('Y-m-d') ~ '&v%5Buser_id%5D%5B%5D=' ~ entry.redmineUserId %}
+                                        <a href="{{ rmUrl }}" target="_blank" title="Redmine">{{ 'redmine_link'|trans({}, 'reporting') }}</a>
+                                    {%- endif -%}
+                                </td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -77,6 +85,7 @@
                                 <th class="text-end">{{ totalFlat|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalUnknown|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalOverall|number_format(2, ',', '.') }} h</th>
+                                <th></th>
                             </tr>
                         </tfoot>
                     </table>
