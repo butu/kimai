@@ -10,6 +10,7 @@
 namespace KimaiPlugin\BillingReportBundle\Reporting;
 
 use App\Entity\ProjectMeta;
+use App\Entity\User;
 use App\Repository\TimesheetRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Query\Expr\Join;
