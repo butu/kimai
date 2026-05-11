@@ -1,0 +1,24 @@
+{
+    "name": "webprofil/billing-report-bundle",
+    "description": "Fügt einen Abrechnungsprüfungs-Report und eine Abrechnungsart pro Projekt hinzu.",
+    "homepage": "https://www.kimai.org/",
+    "type": "kimai-plugin",
+    "version": "0.1.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "webprofil"
+        }
+    ],
+    "extra": {
+        "kimai": {
+            "require": 25100,
+            "name": "Billing report"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "KimaiPlugin\\BillingReportBundle\\": ""
+        }
+    }
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="reporting.en.xlf">
+    <body>
+      <trans-unit id="billing_1" resname="report_billing">
+        <source>report_billing</source>
+        <target>Billing report</target>
+      </trans-unit>
+      <trans-unit id="billing_2" resname="billingClassification_flat">
+        <source>billingClassification_flat</source>
+        <target>Flat</target>
+      </trans-unit>
+      <trans-unit id="billing_3" resname="billingClassification_atcost">
+        <source>billingClassification_atcost</source>
+        <target>At cost</target>
+      </trans-unit>
+      <trans-unit id="billing_4" resname="billingClassification_unknown">
+        <source>billingClassification_unknown</source>
+        <target>Unclassified</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
