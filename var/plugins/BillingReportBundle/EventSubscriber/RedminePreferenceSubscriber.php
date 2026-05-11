@@ -27,9 +27,8 @@ final class RedminePreferenceSubscriber implements EventSubscriberInterface
     public function loadRedminePreference(UserPreferenceEvent $event): void
     {
         $preference = (new UserPreference('redmine_user_id'))
-            ->setLabel('Redmine User ID')
             ->setType(IntegerType::class)
-            ->setOptions(['required' => false])
+            ->setOptions(['required' => false, 'label' => 'Redmine User ID'])
             ->addConstraint(new Range(['min' => 0]))
             ->setOrder(50)
             ->setSection('default');

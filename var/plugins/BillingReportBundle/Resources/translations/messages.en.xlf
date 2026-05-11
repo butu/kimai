@@ -14,6 +14,10 @@
         <source>billingClassification_atcost</source>
         <target>At cost</target>
       </trans-unit>
+      <trans-unit id="redmine_1" resname="redmine_user_id">
+        <source>redmine_user_id</source>
+        <target>Redmine User ID</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
