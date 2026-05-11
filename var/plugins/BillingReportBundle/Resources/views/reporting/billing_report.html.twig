@@ -1,21 +1,4 @@
 {% extends 'reporting/layout.html.twig' %}
-{% import _self as helper %}
-
-{% macro hours_link(hours, projectIds, userId, begin, end) %}
-    {%- if hours > 0 and projectIds is not empty and userId is not null and begin is not null and end is not null -%}
-        {% set params = {
-            'billable': 1,
-            'state': 3,
-            'users[]': [userId],
-            'projects[]': projectIds,
-            'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'),
-            'performSearch': 1
-        } %}
-        <a href="{{ path('admin_timesheet', params) }}">{{ hours|number_format(2, ',', '.') }} h</a>
-    {%- else -%}
-        {{ hours|number_format(2, ',', '.') }} h
-    {%- endif -%}
-{% endmacro %}
 
 {% block report %}
     {% embed '@theme/embeds/card.html.twig' %}
@@ -50,9 +33,27 @@
                             {% set totalOverall = totalOverall + entry.totalHours %}
                             <tr>
                                 <td>{{ entry.userDisplayName }}</td>
-                                <td class="text-end">{{ helper.hours_link(entry.atCostHours, entry.atCostProjectIds, entry.user.id, begin, end) }}</td>
-                                <td class="text-end">{{ helper.hours_link(entry.flatHours, entry.flatProjectIds, entry.user.id, begin, end) }}</td>
-                                <td class="text-end">{{ helper.hours_link(entry.unknownHours, entry.unknownProjectIds, entry.user.id, begin, end) }}</td>
+                                <td class="text-end">
+                                    {%- if entry.atCostHours > 0 and entry.atCostProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
+                                        <a href="{{ path('admin_timesheet', {'billable': 1, 'state': 3, 'users[]': [entry.user.id], 'projects[]': entry.atCostProjectIds, 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) }}">{{ entry.atCostHours|number_format(2, ',', '.') }} h</a>
+                                    {%- else -%}
+                                        {{ entry.atCostHours|number_format(2, ',', '.') }} h
+                                    {%- endif -%}
+                                </td>
+                                <td class="text-end">
+                                    {%- if entry.flatHours > 0 and entry.flatProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
+                                        <a href="{{ path('admin_timesheet', {'billable': 1, 'state': 3, 'users[]': [entry.user.id], 'projects[]': entry.flatProjectIds, 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) }}">{{ entry.flatHours|number_format(2, ',', '.') }} h</a>
+                                    {%- else -%}
+                                        {{ entry.flatHours|number_format(2, ',', '.') }} h
+                                    {%- endif -%}
+                                </td>
+                                <td class="text-end">
+                                    {%- if entry.unknownHours > 0 and entry.unknownProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
+                                        <a href="{{ path('admin_timesheet', {'billable': 1, 'state': 3, 'users[]': [entry.user.id], 'projects[]': entry.unknownProjectIds, 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) }}">{{ entry.unknownHours|number_format(2, ',', '.') }} h</a>
+                                    {%- else -%}
+                                        {{ entry.unknownHours|number_format(2, ',', '.') }} h
+                                    {%- endif -%}
+                                </td>
                                 <td class="text-end">{{ entry.totalHours|number_format(2, ',', '.') }} h</td>
                             </tr>
                         {% endfor %}
