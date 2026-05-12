@@ -19,8 +19,8 @@
                         <thead>
                             <tr>
                                 <th>{{ 'username'|trans }}</th>
-                                <th class="text-end">{{ 'billingClassification_flat'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'billingClassification_atcost'|trans({}, 'reporting') }}</th>
+                                <th class="text-end">{{ 'billingClassification_flat'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'total'|trans }}</th>
                                 <th class="text-center">{{ 'redmine'|trans({}, 'reporting') }}</th>
                             </tr>
@@ -33,17 +33,6 @@
                             <tr>
                                 <td>{{ entry.userDisplayName }}</td>
                                 <td class="text-end">
-                                    {%- if entry.flatHours > 0 and entry.flatProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
-                                        {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
-                                        {% for pid in entry.flatProjectIds %}
-                                            {% set url = url ~ '&projects%5B%5D=' ~ pid %}
-                                        {% endfor %}
-                                        <a href="{{ url }}">{{ entry.flatHours|number_format(2, ',', '.') }} h</a>
-                                    {%- else -%}
-                                        {{ entry.flatHours|number_format(2, ',', '.') }} h
-                                    {%- endif -%}
-                                </td>
-                                <td class="text-end">
                                     {%- if entry.atCostHours > 0 and entry.atCostProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
                                         {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
                                         {% for pid in entry.atCostProjectIds %}
@@ -52,6 +41,17 @@
                                         <a href="{{ url }}">{{ entry.atCostHours|number_format(2, ',', '.') }} h</a>
                                     {%- else -%}
                                         {{ entry.atCostHours|number_format(2, ',', '.') }} h
+                                    {%- endif -%}
+                                </td>
+                                <td class="text-end">
+                                    {%- if entry.flatHours > 0 and entry.flatProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
+                                        {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
+                                        {% for pid in entry.flatProjectIds %}
+                                            {% set url = url ~ '&projects%5B%5D=' ~ pid %}
+                                        {% endfor %}
+                                        <a href="{{ url }}">{{ entry.flatHours|number_format(2, ',', '.') }} h</a>
+                                    {%- else -%}
+                                        {{ entry.flatHours|number_format(2, ',', '.') }} h
                                     {%- endif -%}
                                 </td>
                                 <td class="text-end">{{ (entry.flatHours + entry.atCostHours)|number_format(2, ',', '.') }} h</td>
@@ -67,8 +67,8 @@
                         <tfoot>
                             <tr class="summary">
                                 <th>{{ 'summary'|trans }}</th>
-                                <th class="text-end">{{ totalFlat|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalAtCost|number_format(2, ',', '.') }} h</th>
+                                <th class="text-end">{{ totalFlat|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalOverall|number_format(2, ',', '.') }} h</th>
                                 <th></th>
                             </tr>
