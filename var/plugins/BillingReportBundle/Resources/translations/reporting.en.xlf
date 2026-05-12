@@ -12,7 +12,7 @@
       </trans-unit>
       <trans-unit id="billing_3" resname="billingClassification_atcost">
         <source>billingClassification_atcost</source>
-        <target>Redmine billing</target>
+        <target>kunden.webprofil.at</target>
       </trans-unit>
       <trans-unit id="billing_4" resname="billingClassification_unknown">
         <source>billingClassification_unknown</source>
