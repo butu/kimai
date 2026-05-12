@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="billing_classification_2" resname="billingClassification_flat">
         <source>billingClassification_flat</source>
-        <target>Abrechnung über Kunden</target>
+        <target>Redmine</target>
       </trans-unit>
       <trans-unit id="billing_classification_3" resname="billingClassification_atcost">
         <source>billingClassification_atcost</source>
-        <target>Abrechnen über kunden.webprofil.at</target>
+        <target>kunden.webprofil.at</target>
       </trans-unit>
     </body>
   </file>
