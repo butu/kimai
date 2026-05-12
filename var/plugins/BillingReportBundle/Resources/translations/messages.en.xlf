@@ -14,10 +14,6 @@
         <source>billingClassification_atcost</source>
         <target>kunden.webprofil.at</target>
       </trans-unit>
-      <trans-unit id="billing_classification_3" resname="billingClassification_atcost">
-        <source>billingClassification_atcost</source>
-        <target>kunden.webprofil.at</target>
-      </trans-unit>
       <trans-unit id="redmine_1" resname="redmine_user_id">
         <source>redmine_user_id</source>
         <target>Redmine User ID</target>
