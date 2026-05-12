@@ -11,7 +11,6 @@
             {% else %}
                 {% set totalFlat = 0 %}
                 {% set totalAtCost = 0 %}
-                {% set totalUnknown = 0 %}
                 {% set totalOverall = 0 %}
                 {% set redmineBase = 'https://aufgaben.webprofil.at/time_entries?set_filter=1&sort=spent_on%3Adesc&f%5B%5D=spent_on&op%5Bspent_on%5D=%3E%3C&f%5B%5D=user_id&op%5Buser_id%5D=%3D&f%5B%5D=&c%5B%5D=project&c%5B%5D=spent_on&c%5B%5D=hours&c%5B%5D=comments&c%5B%5D=user&c%5B%5D=activity&c%5B%5D=issue&c%5B%5D=cf_13&c%5B%5D=cf_12&group_by=project&t%5B%5D=hours&t%5B%5D=' %}
 
@@ -20,9 +19,8 @@
                         <thead>
                             <tr>
                                 <th>{{ 'username'|trans }}</th>
-                                <th class="text-end">{{ 'billingClassification_atcost'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'billingClassification_flat'|trans({}, 'reporting') }}</th>
-                                <th class="text-end">{{ 'billingClassification_unknown'|trans({}, 'reporting') }}</th>
+                                <th class="text-end">{{ 'billingClassification_atcost'|trans({}, 'reporting') }}</th>
                                 <th class="text-end">{{ 'total'|trans }}</th>
                                 <th class="text-center">{{ 'redmine'|trans({}, 'reporting') }}</th>
                             </tr>
@@ -31,21 +29,9 @@
                         {% for entry in entries %}
                             {% set totalFlat = totalFlat + entry.flatHours %}
                             {% set totalAtCost = totalAtCost + entry.atCostHours %}
-                            {% set totalUnknown = totalUnknown + entry.unknownHours %}
-                            {% set totalOverall = totalOverall + entry.totalHours %}
+                            {% set totalOverall = totalOverall + entry.flatHours + entry.atCostHours %}
                             <tr>
                                 <td>{{ entry.userDisplayName }}</td>
-                                <td class="text-end">
-                                    {%- if entry.atCostHours > 0 and entry.atCostProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
-                                        {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
-                                        {% for pid in entry.atCostProjectIds %}
-                                            {% set url = url ~ '&projects%5B%5D=' ~ pid %}
-                                        {% endfor %}
-                                        <a href="{{ url }}">{{ entry.atCostHours|number_format(2, ',', '.') }} h</a>
-                                    {%- else -%}
-                                        {{ entry.atCostHours|number_format(2, ',', '.') }} h
-                                    {%- endif -%}
-                                </td>
                                 <td class="text-end">
                                     {%- if entry.flatHours > 0 and entry.flatProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
                                         {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
@@ -58,17 +44,17 @@
                                     {%- endif -%}
                                 </td>
                                 <td class="text-end">
-                                    {%- if entry.unknownHours > 0 and entry.unknownProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
+                                    {%- if entry.atCostHours > 0 and entry.atCostProjectIds is not empty and entry.user is not null and begin is not null and end is not null -%}
                                         {% set url = path('admin_timesheet', {'billable': 1, 'state': 3, 'users': [entry.user.id], 'daterange': begin|date('Y-m-d') ~ ' - ' ~ end|date('Y-m-d'), 'performSearch': 1}) %}
-                                        {% for pid in entry.unknownProjectIds %}
+                                        {% for pid in entry.atCostProjectIds %}
                                             {% set url = url ~ '&projects%5B%5D=' ~ pid %}
                                         {% endfor %}
-                                        <a href="{{ url }}">{{ entry.unknownHours|number_format(2, ',', '.') }} h</a>
+                                        <a href="{{ url }}">{{ entry.atCostHours|number_format(2, ',', '.') }} h</a>
                                     {%- else -%}
-                                        {{ entry.unknownHours|number_format(2, ',', '.') }} h
+                                        {{ entry.atCostHours|number_format(2, ',', '.') }} h
                                     {%- endif -%}
                                 </td>
-                                <td class="text-end">{{ entry.totalHours|number_format(2, ',', '.') }} h</td>
+                                <td class="text-end">{{ (entry.flatHours + entry.atCostHours)|number_format(2, ',', '.') }} h</td>
                                 <td class="text-center">
                                     {%- if entry.redmineUserId is not null and begin is not null and end is not null -%}
                                         {% set rmUrl = redmineBase ~ '&v%5Bspent_on%5D%5B%5D=' ~ begin|date('Y-m-d') ~ '&v%5Bspent_on%5D%5B%5D=' ~ end|date('Y-m-d') ~ '&v%5Buser_id%5D%5B%5D=' ~ entry.redmineUserId %}
@@ -81,9 +67,8 @@
                         <tfoot>
                             <tr class="summary">
                                 <th>{{ 'summary'|trans }}</th>
-                                <th class="text-end">{{ totalAtCost|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalFlat|number_format(2, ',', '.') }} h</th>
-                                <th class="text-end">{{ totalUnknown|number_format(2, ',', '.') }} h</th>
+                                <th class="text-end">{{ totalAtCost|number_format(2, ',', '.') }} h</th>
                                 <th class="text-end">{{ totalOverall|number_format(2, ',', '.') }} h</th>
                                 <th></th>
                             </tr>
