@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="billing_classification_2" resname="billingClassification_flat">
         <source>billingClassification_flat</source>
-        <target>Pauschal</target>
+        <target>Abrechnung über Kunden</target>
       </trans-unit>
       <trans-unit id="billing_classification_3" resname="billingClassification_atcost">
         <source>billingClassification_atcost</source>
-        <target>Nach Aufwand</target>
+        <target>Abrechnung über Redmine</target>
       </trans-unit>
     </body>
   </file>

@@ -8,11 +8,11 @@
       </trans-unit>
       <trans-unit id="billing_2" resname="billingClassification_flat">
         <source>billingClassification_flat</source>
-        <target>Flat</target>
+        <target>Customer billing</target>
       </trans-unit>
       <trans-unit id="billing_3" resname="billingClassification_atcost">
         <source>billingClassification_atcost</source>
-        <target>At cost</target>
+        <target>Redmine billing</target>
       </trans-unit>
       <trans-unit id="billing_4" resname="billingClassification_unknown">
         <source>billingClassification_unknown</source>
